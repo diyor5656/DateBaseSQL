@@ -9,6 +9,7 @@ namespace DateBaseSQL.Metods
 
         public static void AlterTable(string connectionString)
         {
+           
             try
             {
                 Select.GetTableNames(connectionString);
@@ -18,6 +19,8 @@ namespace DateBaseSQL.Metods
                     Select.GetTableNames(connectionString);
                     Console.Write("O'zgartirmoqchi bo'lgan Table nomini kiriting: ");
                     string tableName = Console.ReadLine();
+                    Select.GetTableColumns(connectionString, tableName);
+                    Console.WriteLine("----------------------------------------------------------");
                     Console.WriteLine("\nJadvalni o'zgartirish uchun quyidagi variantlardan birini tanlang:");
                     Console.WriteLine("1. Column qo'shish");
                     Console.WriteLine("2. Columnni o'chirish");

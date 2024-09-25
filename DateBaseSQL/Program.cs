@@ -95,7 +95,7 @@ public static class Program
                         Alter.AlterTable(connectionString);
                         break;
                     case 3:
-                        Console.WriteLine();
+                        Class2.DropTable(connectionString);
                         break;
                     case 4:
                         Class1.Elements(connectionString);
