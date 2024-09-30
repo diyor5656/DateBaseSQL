@@ -134,7 +134,7 @@ namespace DateBaseSQL.Metods
                 connection.Open();
                 using (NpgsqlCommand command = connection.CreateCommand())
                 {
-                    // Jadvaldan ma'lumot olish uchun SELECT so'rovi
+                    
                     string query = $"SELECT * FROM {tableName};";
                     command.CommandText = query;
 
