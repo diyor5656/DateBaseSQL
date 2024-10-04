@@ -1,4 +1,5 @@
-﻿using Npgsql;
+﻿using DateBaseSQL.Metods;
+using Npgsql;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -61,3 +62,9 @@ namespace DateBaseSQL.Metods
 
     }
 }
+
+   
+        
+
+    
+

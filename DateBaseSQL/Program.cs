@@ -22,7 +22,27 @@ public static class Program
         string userId = Console.ReadLine();
 
         Console.Write("           Password: ");
-        string password = Console.ReadLine();
+        //string password = Console.ReadLine();
+        string password = string.Empty;
+        ConsoleKeyInfo keyInfo;
+        do
+        {
+            keyInfo = Console.ReadKey(true);
+
+            if (keyInfo.Key != ConsoleKey.Enter && keyInfo.Key != ConsoleKey.Backspace)
+            {
+                password += keyInfo.KeyChar;
+                Console.Write("*");
+            }
+            else if (keyInfo.Key == ConsoleKey.Backspace && password.Length > 0)
+            {
+                password = password.Substring(0, password.Length - 1);
+                Console.Write("\b \b");
+            }
+        }
+
+        while (keyInfo.Key != ConsoleKey.Enter);
+
         Console.Clear();
 
         string connectionString = $"Host={host};Port={port};Database={database};User Id={userId};Password={password};";
