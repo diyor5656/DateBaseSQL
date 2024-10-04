@@ -22,6 +22,7 @@ namespace DateBaseSQL.Metods
             "        Columnga element qoshish         ",
             "      Column elementini yangilash         ",
             "          Columndan o'chirish          ",
+            "          Qatorlarni O'qish          ",
             "               Orqaga                     "
         };
 
@@ -63,7 +64,10 @@ namespace DateBaseSQL.Metods
                             case 2:
                                 Class1.DeleteFromColumn(connectionString);
                                 break;
-                            case 3:
+                                    case 3:
+                                Select.GetTableData(connectionString);
+                                break;
+                            case 4:
                                 exit = true;  
                                 break;
                             default:
@@ -126,11 +130,13 @@ namespace DateBaseSQL.Metods
             Console.Clear();
             try
             {
-                
+                Select.GetTableNames(connectionString);
                 Console.Write("Jadval nomini kiriting: ");
                 string tableName = Console.ReadLine();
+                Select.GetTableData(connectionString);
 
-                
+
+
                 Console.Write("IDni kiriting: ");
                 string idValue = Console.ReadLine();
 
@@ -196,6 +202,7 @@ namespace DateBaseSQL.Metods
             Console.Clear();
             try
             {
+               
                 Select.GetTableNames(connectionString);
                 Console.Write("Table nomini kiriting: ");
                 string tableName = Console.ReadLine();
@@ -208,7 +215,7 @@ namespace DateBaseSQL.Metods
                 }
                 else
                 {
-                    Select.GetTableData(connectionString, tableName);
+                    Select.GetTableData(connectionString);
 
                     Console.Write("O'chirmoqchi bo'lgan qatorning id sini kiriting: ");
                     string rowId = Console.ReadLine();
@@ -265,7 +272,7 @@ namespace DateBaseSQL.Metods
                 }
                 else
                 {
-                    Select.GetTableData(connectionString, tableName);
+                    Select.GetTableData(connectionString);
 
                     Console.Write("Yangilamoqchi bo'lgan qatorning id ni kiriting: ");
                     string rowId = Console.ReadLine();

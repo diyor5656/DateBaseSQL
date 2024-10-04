@@ -127,15 +127,19 @@ namespace DateBaseSQL.Metods
             return tableNotExist;
         }
 
-        public static void GetTableData(string connectionString, string tableName)
+        public static void GetTableData(string connectionString)
         {
             using (var connection = new NpgsqlConnection(connectionString))
             {
+
                 connection.Open();
                 using (NpgsqlCommand command = connection.CreateCommand())
                 {
-                    
-                    string query = $"SELECT * FROM {tableName};";
+                    Select.GetTableNames(connectionString);
+                    Console.Write("Table nomini kiriting : ");
+
+
+                    string query = $"SELECT * FROM {Console.ReadLine()};";
                     command.CommandText = query;
 
                     try
