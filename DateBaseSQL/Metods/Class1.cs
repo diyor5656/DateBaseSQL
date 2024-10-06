@@ -1,10 +1,10 @@
-﻿using Npgsql;
+﻿using DateBaseSQL.Metods;
+using Npgsql;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using DateBaseSQL.Metods;
 
 namespace DateBaseSQL.Metods
 {
@@ -64,11 +64,11 @@ namespace DateBaseSQL.Metods
                             case 2:
                                 Class1.DeleteFromColumn(connectionString);
                                 break;
-                                    case 3:
+                            case 3:
                                 Select.GetTableData(connectionString);
                                 break;
                             case 4:
-                                exit = true;  
+                                exit = true;
                                 break;
                             default:
                                 Console.WriteLine("Xato tanlov!!!");
@@ -140,7 +140,7 @@ namespace DateBaseSQL.Metods
                 Console.Write("IDni kiriting: ");
                 string idValue = Console.ReadLine();
 
-                
+
                 Console.Write("Ustun nomini kiriting: ");
                 string columnName = Console.ReadLine();
 
@@ -153,25 +153,25 @@ namespace DateBaseSQL.Metods
                     string query;
                     if (string.IsNullOrEmpty(idValue))
                     {
-                        
+
                         query = $"INSERT INTO \"{tableName}\" (\"{columnName}\") VALUES (@columnValue)";
                     }
                     else
                     {
-                        
+
                         query = $"INSERT INTO \"{tableName}\" (\"Id\", \"{columnName}\") VALUES (@idValue, @columnValue)";
                     }
 
                     using (var command = new NpgsqlCommand(query, connection))
                     {
-                        
+
                         if (!string.IsNullOrEmpty(idValue))
                         {
                             command.Parameters.AddWithValue("@idValue", int.Parse(idValue));
                         }
                         command.Parameters.AddWithValue("@columnValue", columnValue);
 
-                      
+
                         int rowsAffected = command.ExecuteNonQuery();
                         Console.ForegroundColor = ConsoleColor.Green;
                         Console.WriteLine($"{rowsAffected} qator {tableName} jadvaliga qo'shildi.");
@@ -202,7 +202,7 @@ namespace DateBaseSQL.Metods
             Console.Clear();
             try
             {
-               
+
                 Select.GetTableNames(connectionString);
                 Console.Write("Table nomini kiriting: ");
                 string tableName = Console.ReadLine();

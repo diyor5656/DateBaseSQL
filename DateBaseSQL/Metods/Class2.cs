@@ -15,7 +15,7 @@ namespace DateBaseSQL.Metods
             Select.GetTableNames(connectionString);
             try
             {
-               
+
                 Console.Write("O'chirmoqchi bo'lgan jadval nomini kiriting: ");
                 string tableName = Console.ReadLine();
 
@@ -31,12 +31,12 @@ namespace DateBaseSQL.Metods
                 {
                     connection.Open();
 
-                    
+
                     string query = $"DROP TABLE IF EXISTS \"{tableName}\"";
 
                     using (var command = new NpgsqlCommand(query, connection))
                     {
-                        
+
                         command.ExecuteNonQuery();
                         Console.ForegroundColor = ConsoleColor.Green;
                         Console.WriteLine($"'{tableName}' jadvali muvaffaqiyatli o'chirildi.");
@@ -63,8 +63,8 @@ namespace DateBaseSQL.Metods
     }
 }
 
-   
-        
 
-    
+
+
+
 

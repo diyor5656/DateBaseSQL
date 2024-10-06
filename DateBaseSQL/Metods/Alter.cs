@@ -9,7 +9,7 @@ namespace DateBaseSQL.Metods
 
         public static void AlterTable(string connectionString)
         {
-           
+
             try
             {
                 Select.GetTableNames(connectionString);

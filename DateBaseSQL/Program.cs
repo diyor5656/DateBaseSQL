@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using DateBaseSQL.Metods;
+using Npgsql;
 
 public static class Program
 {
@@ -47,6 +48,23 @@ public static class Program
 
         string connectionString = $"Host={host};Port={port};Database={database};User Id={userId};Password={password};";
 
+        try
+        {
+            using (var connection = new NpgsqlConnection(connectionString))
+            {
+                connection.Open();
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine("Ulanish muvaffaqiyatli amalga oshirildi!");
+                connection.Close();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine($"Xatolik: Ma'lumotlar bazasiga ulanib bo'lmadi. Tafsilotlar: {ex.Message}");
+            return; 
+        }
+
         var appSettings = new
         {
             ConnectionString = new
@@ -72,7 +90,7 @@ public static class Program
             "           Alter Table          ",
             "          Delete Table          ",
             "    Elementlar bilan ishlash    "
-          
+
 
         };
 
@@ -127,7 +145,7 @@ public static class Program
                 }
 
                 Console.ReadKey();
-            
+
             }
         }
         Console.Clear();

@@ -26,7 +26,7 @@ namespace DateBaseSQL.Metods
                     }
                     //Console.Write("\nKo'rsatmoqchi bo'lgan Table nomini kiriting: ");
                     //string tableName = Console.ReadLine();
-                    
+
                     //if (NotExist(connectionString, tableName))
                     //{
                     //    Console.ForegroundColor = ConsoleColor.Red;
@@ -77,7 +77,7 @@ namespace DateBaseSQL.Metods
                 }
 
 
-                
+
             }
             catch (NpgsqlException npgEx)
             {
@@ -93,7 +93,7 @@ namespace DateBaseSQL.Metods
             }
         }
 
-        
+
 
         public static bool NotExist(string connectionString, string tableName)
         {
