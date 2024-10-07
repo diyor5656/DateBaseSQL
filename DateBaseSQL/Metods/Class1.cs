@@ -59,7 +59,7 @@ namespace DateBaseSQL.Metods
                                 Class1.InsertIntoColumn(connectionString);
                                 break;
                             case 1:
-                                Class1.UpdateColumnValue(connectionString);
+                                Class1.UpdateTable(connectionString);
                                 break;
                             case 2:
                                 Class1.DeleteFromColumn(connectionString);
@@ -130,61 +130,99 @@ namespace DateBaseSQL.Metods
             Console.Clear();
             try
             {
+                
                 Select.GetTableNames(connectionString);
                 Console.Write("Jadval nomini kiriting: ");
                 string tableName = Console.ReadLine();
-                Select.GetTableData(connectionString);
+                Select.GetTableData1(connectionString, tableName);
 
+                Dictionary<string, string> columns = GetTableColumns(connectionString, tableName);
 
+                Dictionary<string, object> columnsToInsert = new Dictionary<string, object>();
 
-                Console.Write("IDni kiriting: ");
-                string idValue = Console.ReadLine();
+                
+                foreach (var column in columns)
+                {
+                    Console.Write($"{column.Key} (tur: {column.Value}) uchun qiymat kiriting: ");
+                    string columnValue = Console.ReadLine();
 
+                    
+                    switch (column.Value.ToLower())
+                    {
+                        case "smallint":
+                            if (short.TryParse(columnValue, out short smallIntValue))
+                            {
+                                columnsToInsert.Add(column.Key, smallIntValue);  
+                            }
+                            else
+                            {
+                                Console.WriteLine($"Xato: {column.Key} uchun noto'g'ri qiymat kiritildi.");
+                                return; 
+                            }
+                            break;
 
-                Console.Write("Ustun nomini kiriting: ");
-                string columnName = Console.ReadLine();
+                        case "integer":
+                            if (int.TryParse(columnValue, out int intValue))
+                            {
+                                columnsToInsert.Add(column.Key, intValue);
+                            }
+                            else
+                            {
+                                Console.WriteLine($"Xato: {column.Key} uchun noto'g'ri qiymat kiritildi.");
+                                return;
+                            }
+                            break;
 
-                Console.Write("Ustun qiymatini kiriting: ");
-                string columnValue = Console.ReadLine();
+                        case "character varying":
+                        case "text":
+                            columnsToInsert.Add(column.Key, columnValue);  
+                            break;
+
+                        default:
+                            columnsToInsert.Add(column.Key, columnValue);  
+                            break;
+                    }
+                }
 
                 using (var connection = new NpgsqlConnection(connectionString))
                 {
                     connection.Open();
-                    string query;
-                    if (string.IsNullOrEmpty(idValue))
-                    {
 
-                        query = $"INSERT INTO \"{tableName}\" (\"{columnName}\") VALUES (@columnValue)";
+                    
+                    StringBuilder query = new StringBuilder($"INSERT INTO \"{tableName}\" (");
+                    foreach (var column in columnsToInsert.Keys)
+                    {
+                        query.Append($"\"{column}\", ");
                     }
-                    else
-                    {
+                    query.Length -= 2;
+                    query.Append(") VALUES (");
 
-                        query = $"INSERT INTO \"{tableName}\" (\"Id\", \"{columnName}\") VALUES (@idValue, @columnValue)";
+                    foreach (var column in columnsToInsert.Keys)
+                    {
+                        query.Append($"@{column}, ");
                     }
+                    query.Length -= 2; 
+                    query.Append(");");
 
-                    using (var command = new NpgsqlCommand(query, connection))
+                    using (var command = new NpgsqlCommand(query.ToString(), connection))
                     {
-
-                        if (!string.IsNullOrEmpty(idValue))
+                        foreach (var column in columnsToInsert)
                         {
-                            command.Parameters.AddWithValue("@idValue", int.Parse(idValue));
+                            command.Parameters.AddWithValue($"@{column.Key}", column.Value);
                         }
-                        command.Parameters.AddWithValue("@columnValue", columnValue);
-
 
                         int rowsAffected = command.ExecuteNonQuery();
                         Console.ForegroundColor = ConsoleColor.Green;
-                        Console.WriteLine($"{rowsAffected} qator {tableName} jadvaliga qo'shildi.");
-                        Console.ResetColor();
+                        Console.WriteLine($"{rowsAffected} qator qo'shildi {tableName} jadvaliga.");
                     }
 
                     connection.Close();
                 }
             }
-            catch (NpgsqlException npgEx)
+            catch (FormatException)
             {
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine($"Npgsql xatosi: {npgEx.Message}");
+                Console.WriteLine("Xato: Kiritilgan qiymat ustunning turi bilan mos emas.");
                 Console.ResetColor();
             }
             catch (Exception ex)
@@ -195,54 +233,97 @@ namespace DateBaseSQL.Metods
             }
         }
 
+        
+        public static Dictionary<string, string> GetTableColumns(string connectionString, string tableName)
+        {
+            var columns = new Dictionary<string, string>();
+
+            using (var connection = new NpgsqlConnection(connectionString))
+            {
+                connection.Open();
+
+                string query = $@"
+            SELECT column_name, data_type 
+            FROM information_schema.columns 
+            WHERE table_name = @tableName
+            ORDER BY ordinal_position";
+
+                using (var command = new NpgsqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@tableName", tableName);
+                    using (var reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            string columnName = reader.GetString(0);
+                            string columnType = reader.GetString(1);
+                            columns.Add(columnName, columnType);
+                        }
+                    }
+                }
+
+                connection.Close();
+            }
+
+            return columns;
+        }
+
+        
+        public static string GetColumnType(NpgsqlConnection connection, string tableName, string columnName)
+        {
+            string columnType = string.Empty;
+
+            string query = $"SELECT data_type FROM information_schema.columns WHERE table_name = @tableName AND column_name = @columnName";
+            using (var command = new NpgsqlCommand(query, connection))
+            {
+                command.Parameters.AddWithValue("@tableName", tableName);
+                command.Parameters.AddWithValue("@columnName", columnName);
+
+                using (var reader = command.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        columnType = reader.GetString(0).ToLower();
+                    }
+                }
+            }
+
+            return columnType;
+        }
 
 
-        public static void DeleteFromColumn(string connectionString)
+
+
+
+
+        public static void DeleteFromTable(string connectionString)
         {
             Console.Clear();
             try
             {
-
                 Select.GetTableNames(connectionString);
-                Console.Write("Table nomini kiriting: ");
+                Console.Write("Jadval nomini kiriting: ");
                 string tableName = Console.ReadLine();
+                Select.GetTableData1(connectionString, tableName);
 
-                if (Select.NotExist(connectionString, tableName))
+                Console.Write("Qaysi qatorni o'chirmoqchisiz (masalan, id = 1): ");
+                string condition = Console.ReadLine();
+
+                using (var connection = new NpgsqlConnection(connectionString))
                 {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine("Bunday nomdagi Table yuq!!!");
-                    Console.ResetColor();
-                }
-                else
-                {
-                    Select.GetTableData(connectionString);
+                    connection.Open();
 
-                    Console.Write("O'chirmoqchi bo'lgan qatorning id sini kiriting: ");
-                    string rowId = Console.ReadLine();
+                    string query = $"DELETE FROM \"{tableName}\" WHERE {condition};";
 
-                    using (var connection = new NpgsqlConnection(connectionString))
+                    using (var command = new NpgsqlCommand(query, connection))
                     {
-                        connection.Open();
-
-                        string query = $"DELETE FROM \"{tableName}\" WHERE id = @rowId";
-                        using (var command = new NpgsqlCommand(query, connection))
-                        {
-                            command.Parameters.AddWithValue("@rowId", rowId);
-
-                            int rowsAffected = command.ExecuteNonQuery();
-                            Console.ForegroundColor = ConsoleColor.Green;
-                            Console.WriteLine($"{rowsAffected} row(lar) o'chirildi {tableName}.");
-                        }
-
-                        connection.Close();
+                        int rowsAffected = command.ExecuteNonQuery();
+                        Console.ForegroundColor = ConsoleColor.Green;
+                        Console.WriteLine($"{rowsAffected} qator o'chirildi {tableName} jadvalida.");
                     }
+
+                    connection.Close();
                 }
-            }
-            catch (NpgsqlException npgEx)
-            {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine($"Npgsqlda xato: {npgEx.Message}");
-                Console.ResetColor();
             }
             catch (Exception ex)
             {
@@ -255,58 +336,93 @@ namespace DateBaseSQL.Metods
 
 
 
-        public static void UpdateColumnValue(string connectionString)
+
+
+        public static void UpdateTable(string connectionString)
         {
             Console.Clear();
             try
             {
                 Select.GetTableNames(connectionString);
-                Console.Write("Table nomini kiriting: ");
+                Console.Write("Jadval nomini kiriting: ");
                 string tableName = Console.ReadLine();
+                Select.GetTableData1(connectionString, tableName);
 
-                if (Select.NotExist(connectionString, tableName))
+                Dictionary<string, string> columns = GetTableColumns(connectionString, tableName);
+
+                Console.Write("Qaysi qatorni yangilamoqchisiz (masalan, id = 1): ");
+                string condition = Console.ReadLine();
+
+                Dictionary<string, object> columnsToUpdate = new Dictionary<string, object>();
+
+                foreach (var column in columns)
                 {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine("Bunday nomdagi Table yuq!!!");
-                    Console.ResetColor();
-                }
-                else
-                {
-                    Select.GetTableData(connectionString);
+                    Console.Write($"{column.Key} (tur: {column.Value}) uchun yangi qiymat kiriting: ");
+                    string columnValue = Console.ReadLine();
 
-                    Console.Write("Yangilamoqchi bo'lgan qatorning id ni kiriting: ");
-                    string rowId = Console.ReadLine();
-
-                    Console.Write("Yangilamoqchi bo'lgan ustun nomini kiriting: ");
-                    string columnName = Console.ReadLine();
-
-                    Console.Write("Yangi qiymatni kiriting: ");
-                    string newValue = Console.ReadLine();
-
-                    using (var connection = new NpgsqlConnection(connectionString))
+                    switch (column.Value.ToLower())
                     {
-                        connection.Open();
+                        case "smallint":
+                            if (short.TryParse(columnValue, out short smallIntValue))
+                            {
+                                columnsToUpdate.Add(column.Key, smallIntValue);
+                            }
+                            else
+                            {
+                                Console.WriteLine($"Xato: {column.Key} uchun noto'g'ri qiymat kiritildi.");
+                                return;
+                            }
+                            break;
 
-                        string query = $"UPDATE \"{tableName}\" SET \"{columnName}\" = @newValue WHERE id = @rowId";
-                        using (var command = new NpgsqlCommand(query, connection))
-                        {
-                            command.Parameters.AddWithValue("@newValue", newValue);
-                            command.Parameters.AddWithValue("@rowId", rowId);
+                        case "integer":
+                            if (int.TryParse(columnValue, out int intValue))
+                            {
+                                columnsToUpdate.Add(column.Key, intValue);
+                            }
+                            else
+                            {
+                                Console.WriteLine($"Xato: {column.Key} uchun noto'g'ri qiymat kiritildi.");
+                                return;
+                            }
+                            break;
 
-                            int rowsAffected = command.ExecuteNonQuery();
-                            Console.ForegroundColor = ConsoleColor.Green;
-                            Console.WriteLine($"{rowsAffected} row(lar) yangilandi {tableName}.");
-                        }
+                        case "character varying":
+                        case "text":
+                            columnsToUpdate.Add(column.Key, columnValue);
+                            break;
 
-                        connection.Close();
+                        default:
+                            columnsToUpdate.Add(column.Key, columnValue);
+                            break;
                     }
                 }
-            }
-            catch (NpgsqlException npgEx)
-            {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine($"Npgsqlda xato: {npgEx.Message}");
-                Console.ResetColor();
+
+                using (var connection = new NpgsqlConnection(connectionString))
+                {
+                    connection.Open();
+
+                    StringBuilder query = new StringBuilder($"UPDATE \"{tableName}\" SET ");
+                    foreach (var column in columnsToUpdate)
+                    {
+                        query.Append($"\"{column.Key}\" = @{column.Key}, ");
+                    }
+                    query.Length -= 2;
+                    query.Append($" WHERE {condition};");
+
+                    using (var command = new NpgsqlCommand(query.ToString(), connection))
+                    {
+                        foreach (var column in columnsToUpdate)
+                        {
+                            command.Parameters.AddWithValue($"@{column.Key}", column.Value);
+                        }
+
+                        int rowsAffected = command.ExecuteNonQuery();
+                        Console.ForegroundColor = ConsoleColor.Green;
+                        Console.WriteLine($"{rowsAffected} qator yangilandi {tableName} jadvalida.");
+                    }
+
+                    connection.Close();
+                }
             }
             catch (Exception ex)
             {
@@ -315,6 +431,7 @@ namespace DateBaseSQL.Metods
                 Console.ResetColor();
             }
         }
+
 
 
     }

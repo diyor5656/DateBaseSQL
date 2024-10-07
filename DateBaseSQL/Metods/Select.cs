@@ -176,6 +176,49 @@ namespace DateBaseSQL.Metods
                 connection.Close();
             }
         }
+        public static void GetTableData1(string connectionString, string tableName)
+        {
+            using (var connection = new NpgsqlConnection(connectionString))
+            {
+                connection.Open();
+
+                using (NpgsqlCommand command = connection.CreateCommand())
+                {
+                    string query = $"SELECT * FROM {tableName};";
+                    command.CommandText = query;
+
+                    try
+                    {
+                        using (NpgsqlDataReader reader = command.ExecuteReader())
+                        {
+                            Console.ForegroundColor = ConsoleColor.Green;
+                            for (int i = 0; i < reader.FieldCount; i++)
+                            {
+                                Console.Write(reader.GetName(i) + "\t");
+                            }
+                            Console.WriteLine();
+                            Console.ResetColor();
+
+                            while (reader.Read())
+                            {
+                                Console.ForegroundColor = ConsoleColor.White;
+                                for (int i = 0; i < reader.FieldCount; i++)
+                                {
+                                    Console.Write(reader[i] + "\t");
+                                }
+                                Console.WriteLine();
+                            }
+                            Console.ResetColor();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("Xatolik yuz berdi: " + ex.Message);
+                    }
+                }
+                connection.Close();
+            }
+        }
 
 
 
